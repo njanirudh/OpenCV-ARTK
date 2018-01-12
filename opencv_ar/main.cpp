@@ -38,7 +38,7 @@ int main() {
         /* detect the markers in the video frame */
         runDetection(cameraFrame);
 
-        imshow("cam",cameraFrame);
+        imshow("NFT",cameraFrame);
         if (waitKey(30) >= 0)
             break;
     }
@@ -193,7 +193,7 @@ static void runDetection(Mat &input_mat)
 
                     // Get video frame from ARToolkit
                     iplImg->imageData = (char *)gARTImage;
-                    input_mat = cv::cvarrToMat(imgTest);
+                    input_mat = cv::cvarrToMat(iplImg);
 
                     //****Draw a Circle using the pose data****
                     cv::circle(input_mat,Point(markersNFT[i].pose.T[12] ,-markersNFT[i].pose.T[13]),30,Scalar(255,255,255) ,4);
