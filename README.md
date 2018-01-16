@@ -8,7 +8,7 @@ Use the ARToolkit defult **pinball.jpg** as the marker.
 ### Linux
 
 Clone the repo      
-Open cmd in  < PATH TO REPO >/opencv_ar  folder.     
+Open cmd in  '{PATH TO REPO}/opencv_ar'  folder.     
 Run 'cmake'    
 Run 'make -j4'     
 
