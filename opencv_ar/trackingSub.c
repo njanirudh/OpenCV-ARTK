@@ -146,6 +146,7 @@ int trackingInitGetResult( THREAD_HANDLE_T *threadHandle, float trans[3][4], int
         return 1;
     }
 
+
     return -1;
 }
 

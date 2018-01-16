@@ -2,6 +2,8 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 #include "utility.h"
 
@@ -102,7 +104,9 @@ static void runDetection(Mat &input_mat)
 {
     ARUint8		*gARTImage = NULL;
     gARTImage = (uchar *)input_mat.data;
-    static float trackingTrans[3][4];
+    float trackingTrans[3][4] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    cv::Mat rot_vec = Mat::zeros(1,3,CV_64F), trn_vec = Mat::zeros(1,3,CV_64F) , rot_mat = Mat::zeros(3,3,CV_64F);
+
 
     if(true){
         // NFT results.
@@ -184,8 +188,78 @@ static void runDetection(Mat &input_mat)
                     }
 
                     // We have a new pose, so set that.
-                    Print(markersNFT[i].pose.T);
                     arglCameraViewRH((const ARdouble (*)[4])markersNFT[i].trans, markersNFT[i].pose.T, VIEW_SCALEFACTOR);
+
+
+                    //Print(markersNFT[i].pose.T);
+                    PrintTransform(trackingTrans);
+
+                    //************Rotation Matrix************
+
+//                    rot_mat.at<float>(0,0) = trackingTrans[0][0];
+//                    rot_mat.at<float>(0,1) = trackingTrans[0][1];
+//                    rot_mat.at<float>(0,2) = trackingTrans[0][2];
+//                    rot_mat.at<float>(1,0) = trackingTrans[1][0];
+//                    rot_mat.at<float>(1,1) = trackingTrans[1][1];
+//                    rot_mat.at<float>(1,2) = trackingTrans[1][2];
+//                    rot_mat.at<float>(2,0) = trackingTrans[2][0];
+//                    rot_mat.at<float>(2,1) = trackingTrans[2][1];
+//                    rot_mat.at<float>(2,2) = trackingTrans[2][2];
+
+                    rot_mat.at<float>(0,0) = trackingTrans[0][0];
+                    rot_mat.at<float>(0,1) = trackingTrans[0][0];
+                    rot_mat.at<float>(0,2) = trackingTrans[0][0];
+                    rot_mat.at<float>(1,0) = trackingTrans[0][0];
+                    rot_mat.at<float>(1,1) = trackingTrans[0][0];
+                    rot_mat.at<float>(1,2) = trackingTrans[0][0];
+                    rot_mat.at<float>(2,0) = trackingTrans[0][0];
+                    rot_mat.at<float>(2,1) = trackingTrans[0][0];
+                    rot_mat.at<float>(2,2) = trackingTrans[0][0];
+
+                    Rodrigues(rot_mat, rot_vec);
+
+                    //************Translation Matrix***********
+                    trn_vec.at<double>(0,0) = trackingTrans[0][3];
+                    trn_vec.at<double>(0,1) = trackingTrans[1][3];
+                    trn_vec.at<double>(0,2) = trackingTrans[2][3];
+
+                    cout<<trn_vec<<endl;
+
+                    //************Camera Matrix*****************
+                    cv::Mat intrisicMat(3, 3, cv::DataType<double>::type); // Intrisic matrix
+                    intrisicMat.at<double>(0, 0) = 674.171631;
+                    intrisicMat.at<double>(1, 0) = 0;
+                    intrisicMat.at<double>(2, 0) = 0;
+
+                    intrisicMat.at<double>(0, 1) = 0;
+                    intrisicMat.at<double>(1, 1) = 633.898087;
+                    intrisicMat.at<double>(2, 1) = 0;
+
+                    intrisicMat.at<double>(0, 2) = 318.297791;
+                    intrisicMat.at<double>(1, 2) = 237.900467;
+                    intrisicMat.at<double>(2, 2) = 1;
+
+                    //************Dist Matrix**********************
+                    cv::Mat distCoeffs(5, 1, cv::DataType<double>::type);   // Distortion vector
+                    distCoeffs.at<double>(0) = 0.1147807688;
+                    distCoeffs.at<double>(1) = -0.5208189487;
+                    distCoeffs.at<double>(2) = -0.0002069871;
+                    distCoeffs.at<double>(3) = -0.0040593124;
+                    distCoeffs.at<double>(4) = 0;
+
+
+                    std::vector<cv::Point3d> inputPnt ;
+                    std::vector<cv::Point2d> outPnt;
+
+                    cv::Point3d pnt = Point3d(0,0,0);
+                    cout<<pnt<<endl;
+
+                    //cv::Point3d pnt = Point3d(markersNFT[i].pose.T[12],markersNFT[i].pose.T[13],markersNFT[i].pose.T[14]);
+
+                    inputPnt.push_back(pnt);
+
+                    cv::projectPoints(inputPnt,rot_vec,trn_vec,intrisicMat,distCoeffs,outPnt);
+                    cout<<outPnt<<endl;
 
                     // Convert from ARToolkit Image type to OpenCV Mat
                     IplImage* iplImg;
@@ -195,8 +269,9 @@ static void runDetection(Mat &input_mat)
                     iplImg->imageData = (char *)gARTImage;
                     input_mat = cv::cvarrToMat(iplImg);
 
+                    //cout<<outPnt<<"**********"<<endl;
                     //****Draw a Circle using the pose data****
-                    cv::circle(input_mat,Point(markersNFT[i].pose.T[12] ,-markersNFT[i].pose.T[13]),30,Scalar(255,255,255) ,4);
+                    cv::circle(input_mat,Point(outPnt[0].x,outPnt[0].y),30,Scalar(255,255,255) ,4);
 
                 } else {
 
