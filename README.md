@@ -11,9 +11,9 @@ Use the ARToolkit defult **pinball.jpg** as the marker.
 
 Clone the repo      
 Open cmd in  '{PATH TO REPO}/opencv_ar'  folder.     
-Replace the paths for OpenCV and ARToolkit libs  in the CMakeLists.txt
-Run 'cmake'    
-Run 'make -j4'     
+Replace the paths for OpenCV and ARToolkit libs in the CMakeLists.txt      
+Execute 'cmake'    
+Execute 'make -j4'     
 
 ## Authors
 **NJ Anirudh** - Initial work
